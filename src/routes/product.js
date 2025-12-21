@@ -13,7 +13,7 @@ productRouter.post("/create", userAuth, async (req, res) => {
       return res.status(400).json({ message: "Product name is required!" });
             }
      if (!productType || productType.trim() === "") {
-      return res.status(400).json({ message: "Product type is required!" });
+      return res.status(400).json({ message: "Product type is required" });
          }
     if (quantityStock == null) {
          return res.status(400).json({ message: "Quantity stock is required!" });

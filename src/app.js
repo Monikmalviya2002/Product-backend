@@ -4,6 +4,7 @@ import connectDB from "./config/database.js"
 import authRouter from "./routes/auth.js";
 import cors from "cors"
 import cookieParser from "cookie-parser";
+import productRouter from "./routes/product.js";
 
 dotenv.config();
 const app = express();
@@ -22,6 +23,7 @@ app.use(cookieParser());
 
 
 app.use("/api", authRouter);
+app.use("/api", productRouter);
 
 connectDB();
 
