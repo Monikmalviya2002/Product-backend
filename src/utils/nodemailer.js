@@ -1,22 +1,16 @@
-
 import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config();
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    pass: process.env.EMAIL_PASS, // App Password
   },
 });
 
 const sendOtp = async (identifier, otp) => {
-  // check if identifier is email
-  const isEmail = identifier.includes("@");
-
-  if (!isEmail) {
-    // phone logic (SMS) can go here later
+  // if identifier is phone, skip email sending
+  if (!identifier.includes("@")) {
     console.log(`OTP for ${identifier}: ${otp}`);
     return;
   }
@@ -26,17 +20,19 @@ const sendOtp = async (identifier, otp) => {
     to: identifier,
     subject: "Your Productr Login OTP",
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <h2>Login OTP</h2>
-        <p>Your OTP for logging into <b>Productr</b> is:</p>
-        <h1 style="letter-spacing: 2px;">${otp}</h1>
-        <p>This OTP is valid for <b>5 minutes</b>.</p>
-        <p>If you did not request this, please ignore this email.</p>
+      <div style="font-family: Arial, sans-serif">
+        <h2>Login Verification</h2>
+        <p>Your OTP is:</p>
+        <h1 style="letter-spacing: 3px">${otp}</h1>
+        <p>This OTP is valid for 5 minutes.</p>
+        <p>If you didn’t request this, please ignore.</p>
       </div>
     `,
   };
 
   await transporter.sendMail(mailOptions);
+
+  console.log(`OTP email sent to ${identifier}`);
 };
 
 export default sendOtp;
