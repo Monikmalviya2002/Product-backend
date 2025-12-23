@@ -4,8 +4,8 @@
   "type": "module",
   "main": "app.js",
   "scripts": {
-    "start": "node src/ app.js",
-    "dev": " nodemon src/app.js"
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
   },
   "author": "monik",
   "license": "ISC",
