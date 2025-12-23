@@ -2,10 +2,10 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/database.js"
 import authRouter from "./routes/auth.js";
-import cors from "cors"
-import cookieParser from "cookie-parser";
-import productRouter from "./routes/product.js";
-import path from "path";
+ import cors from "cors"
+  import cookieParser from "cookie-parser";
+ import productRouter from "./routes/product.js";
+ import path from "path";
 
 
 
@@ -14,7 +14,7 @@ const app = express();
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 const corsOptions = {
-  origin: "https://product-frontend-git-master-monik-malviyas-projects.vercel.app/",
+  origin: "https://product-frontend-git-master-monik-malviyas-projects.vercel.app",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
