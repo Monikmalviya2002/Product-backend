@@ -1,10 +1,10 @@
 import validator from "validator";
 
 function validateSignUpData(req) {
-  const { emailId, phone } = req.body;
+  const { emailId } = req.body;
 
-  if (!emailId || !phone) {
-    throw new Error("Email or phone number should not be empty");
+  if (!emailId) {
+    throw new Error("Email  should not be empty");
   }
 
   if (!validator.isEmail(emailId)) {

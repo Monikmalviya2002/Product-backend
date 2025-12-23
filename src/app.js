@@ -5,9 +5,13 @@ import authRouter from "./routes/auth.js";
 import cors from "cors"
 import cookieParser from "cookie-parser";
 import productRouter from "./routes/product.js";
+import path from "path";
+
+
 
 dotenv.config();
 const app = express();
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 const corsOptions = {
   origin: "http://localhost:5173",
