@@ -39,35 +39,65 @@ dotenv.config();
            }
            });
 
-         authRouter.post("/verify-otp", async (req, res) => {
-             try {
-            const { otp } = req.body;
-            if (!otp) return res.status(400).json({ error: "OTP is required" });
+         
+        authRouter.post("/verify-otp", async (req, res) => {
+  try {
+    const { otp } = req.body;
 
-            const otpRecord = await OTP.findOne({
-                otp: String(otp).trim(),
-             purpose: "LOGIN",
-          expiresAt: { $gt: new Date() },
-            }).sort({ createdAt: -1 });
+    if (!otp) {
+      return res.status(400).json({ error: "OTP is required" });
+    }
 
-       if (!otpRecord) return res.status(400).json({ error: "OTP not found or expired" });
+    
+    const otpRecord = await OTP.findOne({
+      otp: String(otp).trim(),
+      purpose: "LOGIN",
+      expiresAt: { $gt: new Date() }, 
+    }).sort({ createdAt: -1 }); 
+    if (!otpRecord) {
+      return res.status(400).json({ error: "OTP not found or expired" });
+    }
 
-           const { identifier: emailId } = otpRecord; 
+   
+    const { identifier: emailId } = otpRecord; 
 
-            await OTP.deleteOne({ _id: otpRecord._id });
+    const user = await User.findOne({ emailId });
+    if (!user) {
+      return res.status(404).json({ error: "User associated with this OTP not found" });
+    }
 
-             const user = await User.findOneAndUpdate(
-            { emailId },
-              { isVerified: true },
-              { new: true }
-                  );
+    
+    await OTP.deleteOne({ _id: otpRecord._id });
 
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: "7d" });
-    res.cookie("token", token, { httpOnly: true, sameSite: "lax" });
+   
+    user.isVerified = true;
+    await user.save();
 
-    res.status(200).json({ message: "Login successful", user });
+    
+    const token = jwt.sign(
+      { _id: user._id }, 
+      process.env.JWT_SECRET_KEY, 
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("token", token, { 
+      httpOnly: true, 
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production" 
+    });
+
+    return res.status(200).json({ 
+      message: "Login successful", 
+      user: {
+        _id: user._id,
+        emailId: user.emailId,
+        isVerified: user.isVerified
+      } 
+    });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Verification Error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
