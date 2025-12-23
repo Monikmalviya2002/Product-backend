@@ -11,9 +11,7 @@ function validateSignUpData(req) {
     throw new Error("Invalid email id");
   }
 
-  if (!validator.isMobilePhone(phone, "any")) {
-    throw new Error("Invalid phone number");
-  }
+  
 }
 
 export default validateSignUpData;

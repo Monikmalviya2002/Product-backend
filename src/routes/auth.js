@@ -5,66 +5,62 @@ import User from "../models/user.js";
 import OTP from "../models/otp.js";
 import generateOtp from "../utils/generateOtp.js";
 import sendOtp from "../utils/sendOtp.js";
+dotenv.config();
 
-   dotenv.config();
-    const authRouter = express.Router();
+         const authRouter = express.Router();
+    
+         authRouter.post("/send-otp", async (req, res) => {
+                try {
+             const { emailId } = req.body;
+          if (!emailId) return res.status(400).json({ error: "Email is required" });
+          let user = await User.findOne({ emailId });
+          if (!user) user = await User.create({ emailId });
 
-     // Send OTP
-authRouter.post("/send-otp", async (req, res) => {
-  try {
-    const { emailId } = req.body;
-    if (!emailId) return res.status(400).json({ error: "Email is required" });
+    
+        await OTP.deleteMany({ identifier: emailId, purpose: "LOGIN" });
 
-    // Find or create user
-    let user = await User.findOne({ emailId });
-    if (!user) user = await User.create({ emailId });
+    
+         const otp = generateOtp();
+         const expiresAt = new Date(Date.now() + 5 * 60 * 1000); 
 
-    // Delete old OTPs
-    await OTP.deleteMany({ identifier: emailId, purpose: "LOGIN" });
+            await OTP.create({
+             identifier: emailId,
+           otp,
+           purpose: "LOGIN",
+            isVerified: false,
+           expiresAt,
+            });
 
-    // Generate OTP
-    const otp = generateOtp();
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+           await sendOtp(emailId, otp);
 
-    await OTP.create({
-      identifier: emailId,
-      otp,
-      purpose: "LOGIN",
-      isVerified: false,
-      expiresAt,
-    });
+             res.json({ message: "OTP sent successfully" });
+             } catch (err) {
+          res.status(400).json({ error: err.message });
+           }
+           });
 
-    await sendOtp(emailId, otp);
+         authRouter.post("/verify-otp", async (req, res) => {
+             try {
+            const { otp } = req.body;
+            if (!otp) return res.status(400).json({ error: "OTP is required" });
 
-    res.json({ message: "OTP sent successfully" });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+            const otpRecord = await OTP.findOne({
+                otp: String(otp).trim(),
+             purpose: "LOGIN",
+          expiresAt: { $gt: new Date() },
+            }).sort({ createdAt: -1 });
 
-// Verify OTP
-authRouter.post("/verify-otp", async (req, res) => {
-  try {
-    const { otp } = req.body;
-    if (!otp) return res.status(400).json({ error: "OTP is required" });
+       if (!otpRecord) return res.status(400).json({ error: "OTP not found or expired" });
 
-    const otpRecord = await OTP.findOne({
-      otp: String(otp).trim(),
-      purpose: "LOGIN",
-      expiresAt: { $gt: new Date() },
-    }).sort({ createdAt: -1 });
+           const { identifier: emailId } = otpRecord; 
 
-    if (!otpRecord) return res.status(400).json({ error: "OTP not found or expired" });
+            await OTP.deleteOne({ _id: otpRecord._id });
 
-    const { identifier: emailId } = otpRecord; // get email from OTP record
-
-    await OTP.deleteOne({ _id: otpRecord._id });
-
-    const user = await User.findOneAndUpdate(
-      { emailId },
-      { isVerified: true },
-      { new: true }
-    );
+             const user = await User.findOneAndUpdate(
+            { emailId },
+              { isVerified: true },
+              { new: true }
+                  );
 
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: "7d" });
     res.cookie("token", token, { httpOnly: true, sameSite: "lax" });
@@ -78,11 +74,11 @@ authRouter.post("/verify-otp", async (req, res) => {
 
          authRouter.post("/resend-otp", async (req, res) => {
          try {
-         const { emailId, phone } = req.body;
-            const identifier = emailId || phone;
+         const { emailId} = req.body;
+            const identifier = emailId ;
 
        if (!identifier) {
-      return res.status(400).json({ error: "Email or phone required" });
+      return res.status(400).json({ error: "Email  required" });
     }
 
   

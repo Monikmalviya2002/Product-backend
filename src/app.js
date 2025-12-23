@@ -14,7 +14,7 @@ const app = express();
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: "https://product-frontend-git-master-monik-malviyas-projects.vercel.app/",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
