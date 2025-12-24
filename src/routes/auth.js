@@ -33,13 +33,12 @@ dotenv.config();
 
            await sendOtp(emailId, otp);
 
-             res.json({ message: "OTP sent successfully" });
+             res.json({ message: "OTP sent successfully to your emailId" });
              } catch (err) {
           res.status(400).json({ error: err.message });
            }
            });
 
-         
         authRouter.post("/verify-otp", async (req, res) => {
   try {
     const { otp } = req.body;
@@ -108,7 +107,7 @@ dotenv.config();
             const identifier = emailId ;
 
        if (!identifier) {
-      return res.status(400).json({ error: "Email  required" });
+      return res.status(400).json({ error: "Email is required" });
     }
 
   
@@ -141,7 +140,7 @@ dotenv.config();
              expires: new Date(Date.now()),
               });
 
-          res.send("Logged out successfully");
+          res.send("Logged out successfullly");
                });
 
 export default authRouter;

@@ -34,5 +34,5 @@ app.use("/api", productRouter);
 connectDB();
 
 app.listen(process.env.PORT,()=>{
-    console.log("server is active")
+    console.log("server is active now")
 });
