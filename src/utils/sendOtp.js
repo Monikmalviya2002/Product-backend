@@ -1,20 +1,25 @@
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
-const sendOtp = async (identifier, otp) => {
-  try {
-    // If identifier is NOT an email (phone), just log it
-    if (!identifier.includes("@")) {
-      console.log(`OTP for ${identifier}: ${otp}`);
-      return;
-    }
+           const transporter = nodemailer.createTransport({
+            service: "gmail",
+             auth: {
+           user: process.env.EMAIL_USER,
+           pass: process.env.EMAIL_PASS,
+             },
+           pool: true,          
+           maxConnections: 5,   
+             rateLimit: 10,       
+         });
+
+           const sendOtp = async (identifier, otp) => {
+               try {
+             if (!identifier.includes("@")) {
+                console.log(`OTP for ${identifier}: ${otp}`);
+              return;
+              }
 
     const mailOptions = {
       from: `"Productr" <${process.env.EMAIL_USER}>`,
@@ -31,7 +36,6 @@ const sendOtp = async (identifier, otp) => {
     };
 
     await transporter.sendMail(mailOptions);
-
     console.log(`OTP email sent to ${identifier}`);
   } catch (error) {
     console.error("Error sending OTP email:", error.message);

@@ -10,37 +10,38 @@ dotenv.config();
          const authRouter = express.Router();
     
          authRouter.post("/send-otp", async (req, res) => {
-                try {
-             const { emailId } = req.body;
-          if (!emailId) return res.status(400).json({ error: "Email is required" });
-          let user = await User.findOne({ emailId });
-          if (!user) user = await User.create({ emailId });
+           try {
+          const { emailId } = req.body;
+         if (!emailId) return res.status(400).json({ error: "Email is required" });
+
+           let user = await User.findOne({ emailId });
+    if (!user) user = await User.create({ emailId });
+
+    await OTP.deleteMany({ identifier: emailId, purpose: "LOGIN" });
+
+    const otp = generateOtp();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await OTP.create({
+      identifier: emailId,
+      otp,
+      purpose: "LOGIN",
+      isVerified: false,
+      expiresAt,
+    });
 
     
-        await OTP.deleteMany({ identifier: emailId, purpose: "LOGIN" });
+            sendOtp(emailId, otp).catch(err => console.error("OTP email error:", err));
 
-    
-         const otp = generateOtp();
-         const expiresAt = new Date(Date.now() + 5 * 60 * 1000); 
-
-            await OTP.create({
-             identifier: emailId,
-           otp,
-           purpose: "LOGIN",
-            isVerified: false,
-           expiresAt,
+        res.json({ message: "OTP request received. Check your email shortly." });
+             } catch (err) {
+              res.status(400).json({ error: err.message });
+             }
             });
 
-           await sendOtp(emailId, otp);
-
-             res.json({ message: "OTP sent successfully to your emailId" });
-             } catch (err) {
-          res.status(400).json({ error: err.message });
-           }
-           });
 
         authRouter.post("/verify-otp", async (req, res) => {
-  try {
+            try {
     const { otp } = req.body;
 
     if (!otp) {
@@ -48,7 +49,7 @@ dotenv.config();
     }
 
     
-    const otpRecord = await OTP.findOne({
+       const otpRecord = await OTP.findOne({
       otp: String(otp).trim(),
       purpose: "LOGIN",
       expiresAt: { $gt: new Date() }, 
@@ -101,34 +102,28 @@ dotenv.config();
 });
 
 
-         authRouter.post("/resend-otp", async (req, res) => {
-         try {
-         const { emailId} = req.body;
-            const identifier = emailId ;
+        authRouter.post("/resend-otp", async (req, res) => {
+  try {
+    const { emailId } = req.body;
+    if (!emailId) return res.status(400).json({ error: "Email is required" });
 
-       if (!identifier) {
-      return res.status(400).json({ error: "Email is required" });
-    }
+    await OTP.deleteMany({ identifier: emailId, purpose: "LOGIN" });
 
-  
-    await OTP.deleteMany({ identifier, purpose: "LOGIN" });
-
-   
-    const otp = generateOtp(); 
+    const otp = generateOtp();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-   
     await OTP.create({
-        identifier,
+      identifier: emailId,
       otp,
-        purpose: "LOGIN",
+      purpose: "LOGIN",
+      isVerified: false,
       expiresAt,
     });
 
-    
-    await sendOtp(identifier, otp);
+   
+    sendOtp(emailId, otp).catch(err => console.error("OTP email error:", err));
 
-    res.json({ message: "OTP resent successfully" });
+    res.json({ message: "OTP resent successfully. Check your email shortly." });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
