@@ -42,20 +42,20 @@ dotenv.config();
 
         authRouter.post("/verify-otp", async (req, res) => {
             try {
-    const { otp } = req.body;
+              const { otp } = req.body;
 
-    if (!otp) {
-      return res.status(400).json({ error: "OTP is required" });
-    }
+                if (!otp) {
+                  return res.status(400).json({ error: "OTP is required" });
+                      }
 
     
-       const otpRecord = await OTP.findOne({
-      otp: String(otp).trim(),
-      purpose: "LOGIN",
-      expiresAt: { $gt: new Date() }, 
-    }).sort({ createdAt: -1 }); 
-    if (!otpRecord) {
-      return res.status(400).json({ error: "OTP not found or expired" });
+                  const otpRecord = await OTP.findOne({
+                   otp: String(otp).trim(),
+                  purpose: "LOGIN",
+                   expiresAt: { $gt: new Date() }, 
+                   }).sort({ createdAt: -1 }); 
+                 if (!otpRecord) {
+                return res.status(400).json({ error: "OTP not found or expired" });
     }
 
    
