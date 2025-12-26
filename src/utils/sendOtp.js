@@ -1,44 +1,28 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import dotenv from "dotenv";
 dotenv.config();
 
 
-           const transporter = nodemailer.createTransport({
-            service: "gmail",
-             auth: {
-           user: process.env.EMAIL_USER,
-           pass: process.env.EMAIL_PASS,
-             },
-           pool: true,          
-           maxConnections: 5,   
-             rateLimit: 10,       
-         });
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-           const sendOtp = async (identifier, otp) => {
-               try {
-             if (!identifier.includes("@")) {
-                console.log(`OTP for ${identifier}: ${otp}`);
-              return;
-              }
-
-    const mailOptions = {
-      from: `"Productr" <${process.env.EMAIL_USER}>`,
-      to: identifier,
+const sendOtp = async (email, otp) => {
+  try {
+    await resend.emails.send({
+      from: "Productr <onboarding@resend.dev>",
+      to: email,
       subject: "Your Productr Login OTP",
       html: `
-        <div style="font-family: Arial, sans-serif;">
-          <h2>Login OTP</h2>
-          <p>Your OTP is:</p>
-          <h1 style="letter-spacing:2px;">${otp}</h1>
-          <p>This OTP is valid for 5 minutes.</p>
-        </div>
+        <h2>Login OTP</h2>
+        <p>Your OTP is:</p>
+        <h1>${otp}</h1>
+        <p>This OTP is valid for 5 minutes.</p>
       `,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-    console.log(`OTP email sent to ${identifier}`);
+    console.log(`✅ OTP email sent to ${email}`);
   } catch (error) {
-    console.error("Error sending OTP email:", error.message);
+    console.error("❌ Resend email error:", error);
+    throw error;
   }
 };
 
